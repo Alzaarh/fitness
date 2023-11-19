@@ -1,0 +1,23 @@
+GET http://localhost:3000/api/moves HTTP/1.1
+
+###
+
+POST http://localhost:3000/api/moves HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Move 2"
+}
+
+###
+
+PUT http://localhost:3000/api/moves/d200fef6-d67d-4eed-a8a3-4d83acface59 HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "update"
+}
+
+### 
+
+DELETE http://localhost:3000/api/moves/d200fef6-d67d-4eed-a8a3-4d83acface59 HTTP/1.1
