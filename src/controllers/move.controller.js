@@ -9,7 +9,7 @@ exports.create = asyncHandler(async (req, res) => {
 });
 
 exports.find = asyncHandler(async (_req, res) => {
-  const { rows } = await pool.query('SELECT id,name FROM moves');
+  const { rows } = await pool.query('SELECT id,name FROM moves ORDER BY name ASC');
   res.send({ data: { moves: rows } });
 });
 

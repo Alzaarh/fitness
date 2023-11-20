@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { body } = require('express-validator');
 const { validate } = require('../middlewares/validate.middleware');
 const moveController = require('../controllers/move.controller');
+
 const router = Router();
 
 router.get('/', moveController.find);

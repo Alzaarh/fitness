@@ -1,4 +1,5 @@
 GET https://fitnes.iran.liara.run/api/moves HTTP/1.1
+Authorization: {{jwt}}
 
 ###
 
@@ -24,10 +25,15 @@ DELETE https://fitnes.iran.liara.run/api/moves/d200fef6-d67d-4eed-a8a3-4d83acfac
 
 ###
 
+# @name signin
 POST https://fitnes.iran.liara.run/api/auth/signin HTTP/1.1
 Content-Type: application/json
 
 {
     "username": "admin",
-    "password": "password"
+    "password": "Fitness2023"
 }
+
+###
+
+@jwt = {{signin.response.body.data.token}}
