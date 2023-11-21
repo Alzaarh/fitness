@@ -36,4 +36,14 @@ Content-Type: application/json
 
 ###
 
+GET https://fitnes.iran.liara.run/api/categories HTTP/1.1
+Authorization: {{jwt}}
+
+###
+
+GET https://fitnes.iran.liara.run/api/categories/dd6b9c5c-f1b3-4b10-9e4f-147845425ba3 HTTP/1.1
+Authorization: {{jwt}}
+
+###
+
 @jwt = {{signin.response.body.data.token}}
