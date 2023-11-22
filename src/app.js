@@ -1,3 +1,4 @@
+const { join } = require('node:path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -18,6 +19,8 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(join(__dirname, '..', 'public')));
+
 app.use('/api', router);
 
 app.get('/ip', (req, res) => res.send(req.ip));

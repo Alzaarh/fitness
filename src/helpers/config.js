@@ -3,4 +3,5 @@ exports.config = {
   env: process.env.NODE_ENV || 'development',
   dbString: process.env.DB_STRING,
   jwtKey: process.env.JWT_KEY,
+  domain: process.env.DOMAIN,
 };

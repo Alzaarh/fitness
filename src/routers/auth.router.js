@@ -9,9 +9,10 @@ const { pool } = require('../helpers/db');
 const router = Router();
 
 const validateSignin = async (val, { req }) => {
-  const query = `SELECT username,password FROM ${escapeIdentifier('Users')} WHERE username=$1`;
-  const { rows } = await pool.query(query, [req.body.username]);
-  if (!rows[0] || !(await bcrypt.compare(val, rows[0].password))) {
+  const { rows } = await pool.query('SELECT username,password FROM users WHERE username=$1', [
+    req.body.username,
+  ]);
+  if (rows.length === 0 || !(await bcrypt.compare(val, rows[0].password))) {
     throw new Error('Invalid username or password');
   }
 };
