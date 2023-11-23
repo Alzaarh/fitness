@@ -1,26 +1,24 @@
 const { Router } = require('express');
-const { body } = require('express-validator');
+const { body, param } = require('express-validator');
 const { validate } = require('../middlewares/validate.middleware');
 const moveController = require('../controllers/move.controller');
 const { pool } = require('../helpers/db');
 
 const router = Router();
 
-const categoryExist = async (value) => {
-  const { rows } = await pool.query('SELECT id FROM categories WHERE id=$1', [value]);
+const moveExist = async (value) => {
+  const { rows } = await pool.query('SELECT id FROM moves WHERE id=$1', [value]);
   if (rows.length === 0) {
-    throw new Error('Category does not exist');
+    throw new Error('Move does not exist');
   }
 };
 
-// router.post(
-//   '/',
-//   [body('name').isString(), body('categoryId').isUUID().custom(categoryExist), validate],
-//   moveController.create
-// );
+router.put(
+  '/:id',
+  [body('name').isString(), param('id').isUUID().custom(moveExist), validate],
+  moveController.update
+);
 
-// router.put('/:id', [body('name').isString(), validate], moveController.update);
-
-// router.delete('/:id', moveController.delete);
+router.delete('/:id', [param('id').isUUID().custom(moveExist), validate], moveController.delete);
 
 module.exports = router;
