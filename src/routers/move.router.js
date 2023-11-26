@@ -13,6 +13,8 @@ const moveExist = async (value) => {
   }
 };
 
+router.get('/', moveController.find);
+
 router.put(
   '/:id',
   [body('name').isString(), param('id').isUUID().custom(moveExist), validate],

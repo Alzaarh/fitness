@@ -24,3 +24,12 @@ exports.delete = asyncHandler(async (req, res) => {
   ]);
   res.send({ data: { move: rows[0] } });
 });
+
+exports.find = asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    'SELECT m.id,m.name,m.category_id FROM moves As m INNER JOIN categories AS c ON c.id=m.category_id'
+  );
+  const moves = [];
+  rows.forEach((row) => moves.push({ id: row.id, name: row.name, categoryId: row.category_id }));
+  res.send({ data: { moves } });
+});
