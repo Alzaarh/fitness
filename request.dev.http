@@ -1,18 +1,5 @@
-PUT https://fitnes.iran.liara.run/api/moves/d200fef6-d67d-4eed-a8a3-4d83acface59 HTTP/1.1
-Content-Type: application/json
-
-{
-    "name": "update"
-}
-
-### 
-
-DELETE https://fitnes.iran.liara.run/api/moves/d200fef6-d67d-4eed-a8a3-4d83acface59 HTTP/1.1
-
-###
-
 # @name signin
-POST https://fitnes.iran.liara.run/api/auth/signin HTTP/1.1
+POST http://localhost:3000/api/auth/signin HTTP/1.1
 Content-Type: application/json
 
 {
@@ -22,25 +9,7 @@ Content-Type: application/json
 
 ###
 
-GET https://fitnes.iran.liara.run/api/categories HTTP/1.1
-Authorization: {{jwt}}
-
-###
-
-GET https://fitnes.iran.liara.run/api/categories/dd6b9c5c-f1b3-4b10-9e4f-147845425ba3 HTTP/1.1
-Authorization: {{jwt}}
-
-###
-
-POST https://fitnes.iran.liara.run/api/categories/dd6b9c5c-f1b3-4b10-9e4f-147845425ba3/moves HTTP/1.1
-Authorization: {{jwt}}
-Content-Type: application/json
-
-{
-    "name": "move name"
-}
-
-POST https://fitnes.iran.liara.run/api/plans HTTP/1.1
+POST http://localhost:3000/api/plans HTTP/1.1
 Authorization: {{jwt}}
 Content-Type: application/json
 
@@ -76,7 +45,7 @@ Content-Type: application/json
 
 ###
 
-GET https://fitnes.iran.liara.run/api/plans?name=user?last=1 HTTP/1.1
+GET http://localhost:3000/api/plans?name=user?last=1 HTTP/1.1
 Authorization: {{jwt}}
 
 ###
