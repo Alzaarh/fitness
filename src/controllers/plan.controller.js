@@ -17,10 +17,12 @@ exports.create = asyncHandler(async (req, res) => {
   const { name, number, sessions } = req.body;
   const url = randomstring.generate({ capitalization: 'lowercase', length: 8 });
   const { rows } = await pool.query(
-    'INSERT INTO plans (name,number,url,sessions) VALUES ($1,$2,$3,$4) RETURNING id',
+    'INSERT INTO plans (name,number,url,sessions) VALUES ($1,$2,$3,$4) RETURNING id,url',
     [name, number, url, JSON.stringify(sessions)]
   );
-  res.status(201).send({ data: { plan: { id: rows[0].id } } });
+  res.status(201).send({
+    data: { plan: { id: rows[0].id, url: config.domain + rows[0].url } },
+  });
 });
 
 exports.find = asyncHandler(async (req, res) => {
