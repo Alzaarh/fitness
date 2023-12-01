@@ -11,7 +11,8 @@ router.post(
   protect,
   [
     body('name').isString(),
-    body('number').optional().isInt(),
+    body('description').optional().isString(),
+    body('startedAt').isDate(),
     body('sessions').isArray({ min: 1 }),
     body('sessions.*').isObject(),
     body('sessions.*.moves').isArray({ min: 1 }),
@@ -32,5 +33,9 @@ router.get(
   ],
   planController.find
 );
+
+router.get('/:url', planController.findOne);
+
+router.get('/:url/download', planController.download);
 
 module.exports = router;

@@ -15,6 +15,8 @@ Content-Type: application/json
 
 {
     "name": "user 2",
+    "description": "something",
+    "startedAt": "2023-12-05",
     "sessions": [
         {
             "moves": [
@@ -45,8 +47,12 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:3000/api/plans?name=user?last=1 HTTP/1.1
+GET http://localhost:3000/api/plans HTTP/1.1
 Authorization: {{jwt}}
+
+###
+
+GET http://localhost:3000/api/plans/bbw76oct
 
 ###
 
