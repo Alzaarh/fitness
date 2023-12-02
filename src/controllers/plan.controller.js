@@ -1,77 +1,72 @@
 const asyncHandler = require('express-async-handler');
-const randomstring = require('randomstring');
-const moment = require('jalali-moment');
-const pdfPrinter = require('pdfmake');
+const ULID = require('ulid');
+const { generate } = require('randomstring');
 const { pool } = require('../helpers/db');
-
-const plan = (row) => ({
-  id: row.id,
-  name: row.name,
-  description: row.description,
-  url: row.url,
-  index: row.index,
-  startedAt: row.started_at,
-  sessions: row.sessions,
-});
+const planService = require('../services/plan.service');
+const planInterface = require('../interfaces/plan.interface');
 
 exports.create = asyncHandler(async (req, res) => {
   const { name, description, sessions, startedAt } = req.body;
-  const url = randomstring.generate({ capitalization: 'lowercase', length: 8 });
-  const { rows } = await pool.query(
-    'INSERT INTO plans (name,description,url,sessions,started_at) VALUES ($1,$2,$3,$4,$5) RETURNING id,url',
-    [name, description, url, JSON.stringify(sessions), startedAt]
-  );
-  res.status(201).send({
-    data: { plan: { id: rows[0].id, url: rows[0].url } },
-  });
+  const plan = (
+    await pool.query(
+      'INSERT INTO plans(id, name, url, sessions, description, started_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,url',
+      [
+        ULID.ulid(),
+        name,
+        generate({ capitalization: 'lowercase', length: 8 }),
+        JSON.stringify(sessions),
+        description,
+        startedAt,
+      ]
+    )
+  ).rows[0];
+  res.status(201).send({ data: { plan: planInterface(plan) } });
 });
 
 exports.find = asyncHandler(async (req, res) => {
-  const { last = 1, name } = req.query;
+  const { lastId, name } = req.query;
+  let query =
+    'SELECT id,name,description,url,started_at,created_at,sessions FROM plans WHERE 1=1 ';
+  let params = [];
+  if (lastId) {
+    params.push(lastId);
+    query = query.concat(`AND id > $${params.length} `);
+  }
   if (name) {
-    const { rows } = await pool.query(
-      'SELECT id,name,description,url,sessions,index,started_at FROM plans WHERE index >= $1 AND name ILIKE $2 ORDER BY index DESC LIMIT 10',
-      [last, `%${name}%`]
-    );
-    const plans = rows.map((row) => plan(row));
-    return res.send({ data: { plans } });
+    params.push(`%${name}%`);
+    query = query.concat(`AND name ILIKE $${params.length} `);
   }
-  const { rows } = await pool.query(
-    'SELECT id,name,description,url,started_at,sessions,index FROM plans WHERE index >= $1 ORDER BY index DESC LIMIT 10',
-    [last]
-  );
-  const plans = rows.map((row) => plan(row));
-  res.send({ data: { plans } });
+  query = query.concat('ORDER BY id DESC LIMIT 10');
+  let plans = (await pool.query(query, params)).rows;
+  plans = plans.map((plan) => planInterface(plan));
+  query = 'SELECT COUNT(*) AS count FROM plans WHERE 1=1 ';
+  params = [];
+  if (name) {
+    params.push(`%${name}%`);
+    query = query.concat(`AND name ILIKE $${params.length} `);
+  }
+  const count = parseInt((await pool.query(query, params)).rows[0].count);
+  res.send({ data: { plans, count } });
 });
 
-exports.findOne = asyncHandler(async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT id,name,description,url,started_at,sessions FROM plans WHERE url=$1',
-    [req.params.url]
-  );
-  if (rows.length === 0) {
+exports.findByUrl = asyncHandler(async (req, res) => {
+  const plan = (
+    await pool.query(
+      'SELECT id,name,description,url,started_at,created_at,sessions FROM plans WHERE url=$1',
+      [req.params.url]
+    )
+  ).rows[0];
+  if (!plan) {
     return res.status(404).send({ message: 'Not Found' });
   }
-  const planData = plan(rows[0]);
-  res.send({ data: { plan: planData } });
+  res.send({ data: { plan: planInterface(plan) } });
 });
 
-exports.download = asyncHandler(async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT id,name,number,url,created_at,sessions FROM plans WHERE url=$1',
-    [req.params.url]
-  );
-  if (rows.length === 0) {
-    return res.status(404).send({ message: 'Not Found' });
-  }
-  const planData = plan(rows[0]);
-  const printer = new pdfPrinter();
-  const doc = printer.createPdfKitDocument({
-    content: ['asd', 'نام'],
-    defaultStyle: {
-      font: 'Times',
-    },
-  });
-  doc.pipe(res);
-  doc.end();
+exports.destroy = asyncHandler(async (req, res) => {
+  const plan = (
+    await pool.query('DELETE FROM plans WHERE id=$1 RETURNING id', [
+      req.params.id,
+    ])
+  ).rows[0];
+  res.send({ data: { plan: planInterface(plan) } });
 });

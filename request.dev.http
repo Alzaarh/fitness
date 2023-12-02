@@ -14,9 +14,9 @@ Authorization: {{jwt}}
 Content-Type: application/json
 
 {
-    "name": "user 2",
+    "name": "user 3",
     "description": "something",
-    "startedAt": "2023-12-05",
+    "startedAt": "2023/12/05",
     "sessions": [
         {
             "moves": [
@@ -53,6 +53,11 @@ Authorization: {{jwt}}
 ###
 
 GET http://localhost:3000/api/plans/bbw76oct
+
+###
+
+DELETE http://localhost:3000/api/plans/8295baca-31c7-47ed-84b8-6cee28ab3833 HTTP/1.1
+Authorization: {{jwt}}
 
 ###
 
