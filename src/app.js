@@ -2,6 +2,7 @@ const { join } = require('node:path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const morgan = require('morgan');
 const { rateLimit } = require('express-rate-limit');
 const router = require('./routers');
 
@@ -15,6 +16,16 @@ const limiter = rateLimit({
 
 app.set('trust proxy', 1);
 app.use(limiter);
+app.use(
+  '/api/auth/check',
+  rateLimit({
+    windowMs: 60 * 1000,
+    limit: 1,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+  })
+);
+app.use(morgan('dev'));
 app.use(helmet());
 app.use(cors());
 app.use(express.json());

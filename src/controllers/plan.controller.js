@@ -1,8 +1,8 @@
 const asyncHandler = require('express-async-handler');
 const ULID = require('ulid');
 const { generate } = require('randomstring');
+
 const { pool } = require('../helpers/db');
-const planService = require('../services/plan.service');
 const planInterface = require('../interfaces/plan.interface');
 
 exports.create = asyncHandler(async (req, res) => {
