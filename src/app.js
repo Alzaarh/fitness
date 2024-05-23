@@ -20,7 +20,7 @@ app.use(
   '/api/auth/check',
   rateLimit({
     windowMs: 60 * 1000,
-    limit: 1,
+    limit: 3,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
   })
