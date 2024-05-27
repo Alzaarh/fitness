@@ -6,10 +6,10 @@ const { pool } = require('../helpers/db');
 const planInterface = require('../interfaces/plan.interface');
 
 exports.create = asyncHandler(async (req, res) => {
-  const { name, description, sessions, startedAt } = req.body;
+  const { name, description, sessions, startedAt, meals } = req.body;
   const plan = (
     await pool.query(
-      'INSERT INTO plans(id, name, url, sessions, description, started_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,url',
+      'INSERT INTO plans(id, name, url, sessions, description, started_at, meals) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id,url',
       [
         ULID.ulid(),
         name,
@@ -17,6 +17,7 @@ exports.create = asyncHandler(async (req, res) => {
         JSON.stringify(sessions),
         description,
         startedAt,
+        JSON.stringify(meals),
       ]
     )
   ).rows[0];
@@ -25,8 +26,7 @@ exports.create = asyncHandler(async (req, res) => {
 
 exports.find = asyncHandler(async (req, res) => {
   const { lastId, name } = req.query;
-  let query =
-    'SELECT id,name,description,url,started_at,created_at,sessions FROM plans WHERE 1=1 ';
+  let query = 'SELECT * FROM plans WHERE 1=1 ';
   let params = [];
   if (lastId) {
     params.push(lastId);

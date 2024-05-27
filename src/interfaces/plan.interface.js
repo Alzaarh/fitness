@@ -6,4 +6,5 @@ module.exports = (data) => ({
   sessions: data.sessions,
   startedAt: data.started_at,
   createdAt: data.created_at,
+  meals: data.meals,
 });
