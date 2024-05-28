@@ -51,10 +51,7 @@ exports.find = asyncHandler(async (req, res) => {
 
 exports.findByUrl = asyncHandler(async (req, res) => {
   const plan = (
-    await pool.query(
-      'SELECT id,name,description,url,started_at,created_at,sessions FROM plans WHERE url=$1',
-      [req.params.url]
-    )
+    await pool.query('SELECT * FROM plans WHERE url=$1', [req.params.url])
   ).rows[0];
   if (!plan) {
     return res.status(404).send({ message: 'Not Found' });
