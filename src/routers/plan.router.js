@@ -13,7 +13,7 @@ router.post(
     body('name').isString().isLength({ min: 1, max: 100 }),
     body('description').optional().isString().isLength({ min: 1, max: 1000 }),
     body('startedAt').isDate({ strictMode: true }),
-    body('sessions').isArray({ min: 1, max: 30 }),
+    body('sessions').optional().isArray({ min: 1, max: 30 }),
     body('sessions.*').isObject(),
     body('sessions.*.moves').isArray({ min: 1, max: 20 }),
     body('sessions.*.moves.*.name').isString().isLength({ min: 1, max: 100 }),
