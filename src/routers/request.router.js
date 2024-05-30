@@ -5,4 +5,6 @@ const router = Router();
 
 router.post('/', requestController.create);
 
+router.get('/', requestController.find);
+
 module.exports = router;
