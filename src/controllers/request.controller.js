@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const ZarinpalCheckout = require('zarinpal-checkout');
 
 const { pool } = require('../helpers/db');
 
@@ -42,7 +43,30 @@ exports.create = asyncHandler(async (req, res) => {
     req.body.description,
     req.body.type,
   ]);
-  res.status(201).send({ data: 'Success' });
+  const zarinpal = ZarinpalCheckout.create(
+    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    true
+  );
+  const priceResult = await pool.query('SELECT * FROM price');
+  let amount = 0;
+  if (req.body.type === 1) amount = priceResult.rows[0].exercise;
+  else if (req.body.type === 2) amount = priceResult.rows[0].meal;
+  else amount = priceResult.rows[0].exercise + priceResult.rows[0].meal;
+  const zarinpalResponse = await zarinpal.PaymentRequest({
+    Amount: amount.toString(),
+    CallbackURL: 'http://some-url',
+    Description: 'A Payment from Node.JS',
+    Email: 'hi@siamak.work',
+    Mobile: '09120000000',
+  });
+  if (zarinpalResponse.status === 100) {
+    await pool.query(
+      'INSERT INTO transactions (authority, amount, is_verified) VALUES ($1, $2, $3)',
+      [zarinpalResponse.authority, amount, false]
+    );
+    return res.status(201).send({ data: { url: zarinpalResponse.url } });
+  }
+  res.status(500).send({ message: 'Server Error' });
 });
 
 exports.find = asyncHandler(async (req, res) => {
