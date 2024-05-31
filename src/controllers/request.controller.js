@@ -54,8 +54,8 @@ exports.create = asyncHandler(async (req, res) => {
   else amount = priceResult.rows[0].exercise + priceResult.rows[0].meal;
   const zarinpalResponse = await zarinpal.PaymentRequest({
     Amount: amount.toString(),
-    CallbackURL: 'http://some-url',
-    Description: 'A Payment from Node.JS',
+    CallbackURL: process.env.ZARINPAL_REDIRECT_URL,
+    Description: 'درخواست برنامه - اندام سازان',
     Email: 'hi@siamak.work',
     Mobile: '09120000000',
   });
