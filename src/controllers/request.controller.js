@@ -72,12 +72,28 @@ exports.create = asyncHandler(async (req, res) => {
 
 exports.find = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
-  const result = await pool.query('SELECT * FROM requests OFFSET $1 LIMIT $2', [
-    (+page - 1) * +limit,
-    +limit,
-  ]);
-  const totalResult = await pool.query('SELECT id FROM requests');
-  res.send({ data: { requests: result.rows, rowCount: totalResult.rowCount } });
+  if (req.query.name) {
+    const result = await pool.query(
+      'SELECT * FROM requests WHERE name ILIKE $3 OFFSET $1 LIMIT $2',
+      [(+page - 1) * +limit, +limit, `%${req.query.name}%`]
+    );
+    const totalResult = await pool.query(
+      'SELECT id FROM requests WHERE name ILIKE $1',
+      [`%${req.query.name}%`]
+    );
+    res.send({
+      data: { requests: result.rows, rowCount: totalResult.rowCount },
+    });
+  } else {
+    const result = await pool.query(
+      'SELECT * FROM requests OFFSET $1 LIMIT $2',
+      [(+page - 1) * +limit, +limit]
+    );
+    const totalResult = await pool.query('SELECT id FROM requests');
+    res.send({
+      data: { requests: result.rows, rowCount: totalResult.rowCount },
+    });
+  }
 });
 
 exports.findOne = asyncHandler(async (req, res) => {
