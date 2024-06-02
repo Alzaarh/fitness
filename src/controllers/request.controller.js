@@ -79,3 +79,12 @@ exports.find = asyncHandler(async (req, res) => {
   const totalResult = await pool.query('SELECT id FROM requests');
   res.send({ data: { requests: result.rows, rowCount: totalResult.rowCount } });
 });
+
+exports.findOne = asyncHandler(async (req, res) => {
+  const result = await pool.query('SELECT * FROM requests WHERE id = $1', [
+    req.params.id,
+  ]);
+  if (result.rows.length === 0)
+    return res.status(404).send({ message: 'Not Found' });
+  res.send({ data: { request: result.rows[0] } });
+});

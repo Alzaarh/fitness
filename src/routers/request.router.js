@@ -7,4 +7,6 @@ router.post('/', requestController.create);
 
 router.get('/', requestController.find);
 
+router.get('/:id', requestController.findOne);
+
 module.exports = router;
