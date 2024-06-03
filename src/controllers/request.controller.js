@@ -4,46 +4,6 @@ const ZarinpalCheckout = require('zarinpal-checkout');
 const { pool } = require('../helpers/db');
 
 exports.create = asyncHandler(async (req, res) => {
-  const query = `
-        INSERT INTO requests (
-            name, city, age, weight, height, goal, plan_no,
-            exercisehistory, injury1, injury2, activity,
-            sleep_schedule, exercise_schedule, img1, img2, img3,
-            size, alergies, cook, budget, supplements,
-            blood_type, description, type, phone
-        )
-        VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-            $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
-        )
-    `;
-  await pool.query(query, [
-    req.body.name,
-    req.body.city,
-    req.body.age,
-    req.body.weight,
-    req.body.height,
-    req.body.goal,
-    req.body.planNo,
-    req.body.excerciseHistory,
-    req.body.injury1,
-    req.body.injury2,
-    req.body.activity,
-    req.body.sleepSchedule,
-    req.body.exerciseSchedule,
-    req.body.img1,
-    req.body.img2,
-    req.body.img3,
-    req.body.size,
-    req.body.alergies,
-    req.body.cook,
-    req.body.budget,
-    req.body.supplements,
-    req.body.bloodType,
-    req.body.description,
-    req.body.type,
-    req.body.phone,
-  ]);
   const zarinpal = ZarinpalCheckout.create(
     'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     true
@@ -61,10 +21,51 @@ exports.create = asyncHandler(async (req, res) => {
     Mobile: '09120000000',
   });
   if (zarinpalResponse.status === 100) {
-    await pool.query(
-      'INSERT INTO transactions (authority, amount, is_verified) VALUES ($1, $2, $3)',
+    const transactionResult = await pool.query(
+      'INSERT INTO transactions (authority, amount, is_verified) VALUES ($1, $2, $3) RETURNING id',
       [zarinpalResponse.authority, amount, false]
     );
+    const query = `
+        INSERT INTO requests (
+            name, city, age, weight, height, goal, plan_no,
+            exercisehistory, injury1, injury2, activity,
+            sleep_schedule, exercise_schedule, img1, img2, img3,
+            size, alergies, cook, budget, supplements,
+            blood_type, description, type, phone, transaction_id
+        )
+        VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+            $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+        )
+    `;
+    await pool.query(query, [
+      req.body.name,
+      req.body.city,
+      req.body.age,
+      req.body.weight,
+      req.body.height,
+      req.body.goal,
+      req.body.planNo,
+      req.body.excerciseHistory,
+      req.body.injury1,
+      req.body.injury2,
+      req.body.activity,
+      req.body.sleepSchedule,
+      req.body.exerciseSchedule,
+      req.body.img1,
+      req.body.img2,
+      req.body.img3,
+      req.body.size,
+      req.body.alergies,
+      req.body.cook,
+      req.body.budget,
+      req.body.supplements,
+      req.body.bloodType,
+      req.body.description,
+      req.body.type,
+      req.body.phone,
+      transactionResult.rows[0].id,
+    ]);
     return res.status(201).send({ data: { url: zarinpalResponse.url } });
   }
   res.status(500).send({ message: 'Server Error' });
@@ -103,4 +104,33 @@ exports.findOne = asyncHandler(async (req, res) => {
   if (result.rows.length === 0)
     return res.status(404).send({ message: 'Not Found' });
   res.send({ data: { request: result.rows[0] } });
+});
+
+exports.verify = asyncHandler(async (req, res) => {
+  const zarinpal = ZarinpalCheckout.create(
+    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    true
+  );
+  const transactionResult = await pool.query(
+    'SELECT * FROM transactions WHERE authority = $1',
+    [req.body.authority]
+  );
+  if (transactionResult.rowCount === 0)
+    return res.status(400).send({ message: 'Error' });
+  const zarinpalResponse = await zarinpal.PaymentVerification({
+    Amount: transactionResult.rows[0].amount,
+    Authority: req.body.authority,
+  });
+  if (zarinpalResponse.status === 100) {
+    await pool.query(
+      'UPDATE transactions SET is_verified = TRUE WHERE id = $1',
+      [transactionResult.rows[0].id]
+    );
+    await pool.query(
+      'UPDATE requests SET is_verified = TRUE WHERE transaction_id = $1',
+      [transactionResult.rows[0].id]
+    );
+    return res.send({ data: 'Success' });
+  }
+  res.status(400).send({ message: 'Error' });
 });
