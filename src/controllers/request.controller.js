@@ -75,11 +75,11 @@ exports.find = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   if (req.query.name) {
     const result = await pool.query(
-      'SELECT * FROM requests WHERE name ILIKE $3 OFFSET $1 LIMIT $2',
+      'SELECT * FROM requests WHERE name ILIKE $3 AND is_verified = TRUE OFFSET $1 LIMIT $2',
       [(+page - 1) * +limit, +limit, `%${req.query.name}%`]
     );
     const totalResult = await pool.query(
-      'SELECT id FROM requests WHERE name ILIKE $1',
+      'SELECT id FROM requests WHERE name ILIKE $1 AND is_verified = TRUE',
       [`%${req.query.name}%`]
     );
     res.send({
@@ -87,10 +87,12 @@ exports.find = asyncHandler(async (req, res) => {
     });
   } else {
     const result = await pool.query(
-      'SELECT * FROM requests OFFSET $1 LIMIT $2',
+      'SELECT * FROM requests WHERE is_verified = TRUE OFFSET $1 LIMIT $2',
       [(+page - 1) * +limit, +limit]
     );
-    const totalResult = await pool.query('SELECT id FROM requests');
+    const totalResult = await pool.query(
+      'SELECT id FROM requests WHERE is_verified = TRUE'
+    );
     res.send({
       data: { requests: result.rows, rowCount: totalResult.rowCount },
     });
