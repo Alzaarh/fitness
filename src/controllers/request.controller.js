@@ -75,7 +75,7 @@ exports.find = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   if (req.query.name) {
     const result = await pool.query(
-      'SELECT * FROM requests WHERE name ILIKE $3 AND is_verified = TRUE OFFSET $1 LIMIT $2',
+      'SELECT *,requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE name ILIKE $3 AND requests.is_verified = TRUE OFFSET $1 LIMIT $2',
       [(+page - 1) * +limit, +limit, `%${req.query.name}%`]
     );
     const totalResult = await pool.query(
@@ -87,7 +87,7 @@ exports.find = asyncHandler(async (req, res) => {
     });
   } else {
     const result = await pool.query(
-      'SELECT * FROM requests WHERE is_verified = TRUE OFFSET $1 LIMIT $2',
+      'SELECT *,requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE requests.is_verified = TRUE OFFSET $1 LIMIT $2',
       [(+page - 1) * +limit, +limit]
     );
     const totalResult = await pool.query(
@@ -100,9 +100,10 @@ exports.find = asyncHandler(async (req, res) => {
 });
 
 exports.findOne = asyncHandler(async (req, res) => {
-  const result = await pool.query('SELECT * FROM requests WHERE id = $1', [
-    req.params.id,
-  ]);
+  const result = await pool.query(
+    'SELECT *, requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE requests.id = $1',
+    [req.params.id]
+  );
   if (result.rows.length === 0)
     return res.status(404).send({ message: 'Not Found' });
   res.send({ data: { request: result.rows[0] } });
