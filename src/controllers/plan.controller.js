@@ -25,28 +25,33 @@ exports.create = asyncHandler(async (req, res) => {
 });
 
 exports.find = asyncHandler(async (req, res) => {
-  const { lastId, name } = req.query;
-  let query = 'SELECT * FROM plans WHERE 1=1 ';
-  let params = [];
-  if (lastId) {
-    params.push(lastId);
-    query = query.concat(`AND id > $${params.length} `);
-  }
+  const { page = 1, limit = 10, name } = req.query;
   if (name) {
-    params.push(`%${name}%`);
-    query = query.concat(`AND name ILIKE $${params.length} `);
+    const plans = await pool.query(
+      'SELECT * FROM plans WHERE name ILIKE $1 ORDER BY created_at DESC OFFSET $2 LIMIT $3',
+      [`%${name}%`, (+page - 1) * +limit, +limit]
+    );
+    const count = await pool.query('SELECT id FROM plans WHERE name ILIKE $1', [
+      `%${name}%`,
+    ]);
+    return res.send({
+      data: {
+        plans: plans.rows.map((plan) => planInterface(plan)),
+        count: count.rowCount,
+      },
+    });
   }
-  query = query.concat('ORDER BY id DESC LIMIT 10');
-  let plans = (await pool.query(query, params)).rows;
-  plans = plans.map((plan) => planInterface(plan));
-  query = 'SELECT COUNT(*) AS count FROM plans WHERE 1=1 ';
-  params = [];
-  if (name) {
-    params.push(`%${name}%`);
-    query = query.concat(`AND name ILIKE $${params.length} `);
-  }
-  const count = parseInt((await pool.query(query, params)).rows[0].count);
-  res.send({ data: { plans, count } });
+  const plans = await pool.query(
+    'SELECT * FROM plans ORDER BY created_at DESC OFFSET $1 LIMIT $2',
+    [(+page - 1) * +limit, +limit]
+  );
+  const count = await pool.query('SELECT id FROM plans');
+  return res.send({
+    data: {
+      plans: plans.rows.map((plan) => planInterface(plan)),
+      count: count.rowCount,
+    },
+  });
 });
 
 exports.findByUrl = asyncHandler(async (req, res) => {

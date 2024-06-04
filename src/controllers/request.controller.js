@@ -46,7 +46,7 @@ exports.create = asyncHandler(async (req, res) => {
       req.body.height,
       req.body.goal,
       req.body.planNo,
-      req.body.excerciseHistory,
+      req.body.exerciseHistory,
       req.body.injury1,
       req.body.injury2,
       req.body.activity,
@@ -75,7 +75,7 @@ exports.find = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   if (req.query.name) {
     const result = await pool.query(
-      'SELECT *,requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE name ILIKE $3 AND requests.is_verified = TRUE OFFSET $1 LIMIT $2',
+      'SELECT *,requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE name ILIKE $3 AND requests.is_verified = TRUE ORDER BY requests.created_at DESC OFFSET $1 LIMIT $2',
       [(+page - 1) * +limit, +limit, `%${req.query.name}%`]
     );
     const totalResult = await pool.query(
@@ -87,7 +87,7 @@ exports.find = asyncHandler(async (req, res) => {
     });
   } else {
     const result = await pool.query(
-      'SELECT *,requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE requests.is_verified = TRUE OFFSET $1 LIMIT $2',
+      'SELECT *,requests.id FROM requests JOIN transactions ON transactions.id = requests.transaction_id WHERE requests.is_verified = TRUE ORDER BY requests.created_at DESC OFFSET $1 LIMIT $2',
       [(+page - 1) * +limit, +limit]
     );
     const totalResult = await pool.query(
