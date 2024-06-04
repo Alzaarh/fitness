@@ -7,4 +7,5 @@ module.exports = (data) => ({
   startedAt: data.started_at,
   createdAt: data.created_at,
   meals: data.meals,
+  requestId: data.request_id,
 });
