@@ -6,10 +6,18 @@ const { pool } = require('../helpers/db');
 const planInterface = require('../interfaces/plan.interface');
 
 exports.create = asyncHandler(async (req, res) => {
-  const { name, description, sessions, startedAt, meals } = req.body;
+  const { name, description, sessions, startedAt, meals, requestId } = req.body;
+  if (requestId) {
+    const result = await pool.query(
+      'SELECT id FROM plans WHERE request_id = $1',
+      [requestId]
+    );
+    if (result.rowCount > 0)
+      return res.status(400).send({ message: 'Invalid requestId' });
+  }
   const plan = (
     await pool.query(
-      'INSERT INTO plans(id, name, url, sessions, description, started_at, meals) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id,url',
+      'INSERT INTO plans(id, name, url, sessions, description, started_at, meals, request_id) VALUES ($1,$2,$3,$4,$5,$6,$7, $8) RETURNING id,url',
       [
         ULID.ulid(),
         name,
@@ -18,6 +26,7 @@ exports.create = asyncHandler(async (req, res) => {
         description,
         startedAt,
         JSON.stringify(meals),
+        requestId,
       ]
     )
   ).rows[0];
